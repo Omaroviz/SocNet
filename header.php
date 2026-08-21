@@ -78,8 +78,50 @@ class User {
 		$stmt = $pdo->prepare('DELETE FROM cookie_token WHERE id = :id');
 		$stmt->execute([':id' => $this->id]);
 	}
+	static function info($pdo, $id) {
+		$stmt = $pdo->prepare('SELECT * FROM users WHERE id = :id');
+		$stmt->execute([':id' => $id]);
+		$user_info = $stmt->fetch();
+		return $user_info;
+	}
 }
 
+class Post {
+	public $id, $title, $text, $author, $created_at;
+	public function __construct($pdo, $id) {
+		$stmt = $pdo->prepare('SELECT * FROM posts WHERE id = :id');
+		$stmt->execute([':id' => $id]);
+		$post = $stmt->fetchAll();
+	}
+	static function showAllPosts($pdo) {
+		$stmt = $pdo->query('SELECT * FROM posts');
+		$posts = $stmt->fetchAll();
+		foreach ($posts as $post) {
+			$title = $post['title'];
+			$text = $post['text']; // senbonzakura
+			$author = User::info($pdo, $post['author']);
+			echo <<<_END
+				<div style='background-color: grey; padding: 5px; margin: 10px 0'>
+				<b>{$title}</b><br>
+				{$text}<br>
+				<small>{$author['username']}</small>
+				</div>
+				_END;
+		}
+	}
+	static function newPost($pdo, $title, $text, $author) {
+		$stmt = $pdo->prepare('INSERT INTO posts(title, text, author) VALUES(:title, :text, :author)');
+		$stmt->execute([
+			':title' => $title,
+			':text' => $text,
+			':author' => $author
+		]);
+	}
+	
+	static function deletePost($pdo, $id) {
+		
+	}
+}
 
 
 
