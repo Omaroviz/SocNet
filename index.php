@@ -17,6 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' &&
 	header('Location: '.$_SERVER['PHP_SELF']);
 	exit();
 }
+
+Post::deletePost($pdo, 4);
+
+
+
+
+
 ?>
 
 <!DOCTYPE html>

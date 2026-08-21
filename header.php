@@ -45,6 +45,11 @@ class User {
 			$stmt->execute([':id' => $user_from_db['id']]);
 			$user_from_db_cookie = $stmt->fetch();
 			$cookie_username = $_COOKIE['cookie_username'];
+			if (!isset($user_from_db_cookie['token'])) {
+				$this->logout();
+				header('Location: login.php');
+				exit();
+			}
 			if (hash_equals($user_from_db_cookie['token'], $cookie_token)) {
 				$this->id = $user_from_db['id'];	
 				$this->name = $user_from_db['name'];	
@@ -59,7 +64,9 @@ class User {
 		}
 	}
 	public function logout() {
-		setcookie("cookie_username", $user_login['username'], [
+		$pdo = $this->pdo;
+		echo $this->username;
+		setcookie("cookie_username", $this->username, [
 			'expires' => time() - 3600,
 			'path' => '/',
 			'domain' => '',
@@ -67,7 +74,7 @@ class User {
 			'httponly' => true,
 			'samesite' => 'Strict'
 		]);
-		setcookie("cookie_token", $token, [
+		setcookie("cookie_token", $this->token, [
 			'expires' => time() - 3600,
 			'path' => '/',
 			'domain' => '',
@@ -91,7 +98,16 @@ class Post {
 	public function __construct($pdo, $id) {
 		$stmt = $pdo->prepare('SELECT * FROM posts WHERE id = :id');
 		$stmt->execute([':id' => $id]);
-		$post = $stmt->fetchAll();
+		$post = $stmt->fetch();
+		if ($post) {
+			$this->id = $post['id'];
+			$this->title = $post['title'];
+			$this->text = $post['text'];
+			$this->author = $post['author'];
+			$this->created_at = $post['created_at'];
+		} else {
+			echo 'Post not find<br>';
+		}
 	}
 	static function showAllPosts($pdo) {
 		$stmt = $pdo->query('SELECT * FROM posts');
@@ -117,9 +133,17 @@ class Post {
 			':author' => $author
 		]);
 	}
-	
 	static function deletePost($pdo, $id) {
-		
+		$post = new Post($pdo, $id);
+		$user = new User($pdo);
+		echo $user->id.' == '.$post->author.'?: ';
+		if ($user->id == $post->author) {
+			echo 'Y';
+			$stmt = $pdo->prepare('DELETE FROM posts WHERE id = :id');
+			$stmt->execute([':id' => $post->id]);
+		} else {
+			echo 'N. Access denited.';
+		}
 	}
 }
 
