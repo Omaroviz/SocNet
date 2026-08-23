@@ -110,17 +110,18 @@ class Post {
 		}
 	}
 	static function showAllPosts($pdo) {
-		$stmt = $pdo->query('SELECT * FROM posts');
+		$stmt = $pdo->query('SELECT * FROM posts ORDER BY id DESC');
 		$posts = $stmt->fetchAll();
 		foreach ($posts as $post) {
-			$title = $post['title'];
-			$text = $post['text']; // senbonzakura
-			$author = User::info($pdo, $post['author']);
+			$title = htmlspecialchars($post['title']);
+			$text = htmlspecialchars($post['text']); // senbonzakura
+			$user = User::info($pdo, $post['author']);
+			$author = htmlspecialchars($user['username']);
 			echo <<<_END
 				<div style='background-color: grey; padding: 5px; margin: 10px 0'>
 				<b>{$title}</b><br>
 				{$text}<br>
-				<small>{$author['username']}</small>
+				<small>{$author}</small>
 				</div>
 				_END;
 		}
@@ -146,34 +147,5 @@ class Post {
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
